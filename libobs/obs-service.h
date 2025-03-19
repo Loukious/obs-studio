@@ -42,6 +42,10 @@ enum obs_service_connect_info {
 	OBS_SERVICE_CONNECT_INFO_PASSWORD = 6,
 	OBS_SERVICE_CONNECT_INFO_ENCRYPT_PASSPHRASE = 8,
 	OBS_SERVICE_CONNECT_INFO_BEARER_TOKEN = 10,
+	OBS_SERVICE_CONNECT_INFO_SOCKS_HOST = 12,
+	OBS_SERVICE_CONNECT_INFO_SOCKS_PORT = 14,
+	OBS_SERVICE_CONNECT_INFO_SOCKS_USERNAME = 16,
+	OBS_SERVICE_CONNECT_INFO_SOCKS_PASSWORD = 18,
 };
 
 struct obs_service_info {
@@ -78,6 +82,12 @@ struct obs_service_info {
 
 	const char *(*get_username)(void *data);
 	const char *(*get_password)(void *data);
+
+	const char *(*get_socks_host)(void *data);
+	const char *(*get_socks_port)(void *data);
+
+	const char *(*get_socks_username)(void *data);
+	const char *(*get_socks_password)(void *data);
 
 	bool (*deprecated_1)();
 

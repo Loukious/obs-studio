@@ -1541,7 +1541,7 @@
                   </spacer>
                  </item>
                  <item row="5" column="1">
-                  <layout class="QHBoxLayout" name="horizontalLayout_28">
+                  <layout class="QHBoxLayout" name="horizontalLayout_29">
                    <item>
                     <widget class="QPushButton" name="useStreamKeyAdv">
                      <property name="text">
@@ -1626,6 +1626,95 @@
                    </layout>
                   </widget>
                  </item>
+                 <item row="9" column="1">
+                  <widget class="QCheckBox" name="useProxy">
+                   <property name="text">
+                    <string>Basic.Settings.Stream.Custom.UseProxy</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="10" column="0">
+                  <widget class="QLabel" name="socksHostLabel">
+                   <property name="text">
+                    <string>Basic.Settings.Stream.Custom.SocksHost</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>SocksHost</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="10" column="1">
+                  <widget class="QLineEdit" name="socksHost"/>
+                 </item>
+                 <item row="11" column="0">
+                  <widget class="QLabel" name="socksPortLabel">
+                   <property name="text">
+                    <string>Basic.Settings.Stream.Custom.SocksPort</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>socksPort</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="11" column="1">
+                  <widget class="QLineEdit" name="socksPort">
+                  </widget>
+                 </item>
+                 <item row="12" column="0">
+                  <widget class="QLabel" name="socksUsernameLabel">
+                   <property name="text">
+                    <string>Basic.Settings.Stream.Custom.SocksUsername</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>socksUsername</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="12" column="1">
+                  <widget class="QLineEdit" name="socksUsername"/>
+                 </item>
+                 <item row="13" column="0">
+                  <widget class="QLabel" name="socksPasswordLabel">
+                   <property name="text">
+                    <string>Basic.Settings.Stream.Custom.SocksPassword</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>socksPassword</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="13" column="1">
+                  <widget class="QFrame" name="socksPasswordWidget">
+                   <layout class="QHBoxLayout" name="horizontalLayout_26">
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QLineEdit" name="socksPassword">
+                      <property name="echoMode">
+                       <enum>QLineEdit::Password</enum>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="socksPasswordShow">
+                      <property name="text">
+                       <string>Show</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
                 </layout>
                </widget>
               </item>
@@ -1696,7 +1785,7 @@
                     </widget>
                    </item>
                    <item row="1" column="1">
-                    <layout class="QHBoxLayout" name="horizontalLayout_31" stretch="0,0">
+                    <layout class="QHBoxLayout" name="horizontalLayout_32" stretch="0,0">
                      <item>
                       <widget class="QCheckBox" name="multitrackVideoMaximumAggregateBitrateAuto">
                        <property name="text">
@@ -1739,7 +1828,7 @@
                     </widget>
                    </item>
                    <item row="2" column="1">
-                    <layout class="QHBoxLayout" name="horizontalLayout_32" stretch="0,0">
+                    <layout class="QHBoxLayout" name="horizontalLayout_33" stretch="0,0">
                      <item>
                       <widget class="QCheckBox" name="multitrackVideoMaximumVideoTracksAuto">
                        <property name="sizePolicy">
@@ -4075,7 +4164,7 @@
                                     <verstretch>0</verstretch>
                                    </sizepolicy>
                                   </property>
-                                  <layout class="QHBoxLayout" name="horizontalLayout_27">
+                                  <layout class="QHBoxLayout" name="horizontalLayout_28">
                                    <property name="spacing">
                                     <number>3</number>
                                    </property>
@@ -4114,7 +4203,7 @@
                                     <verstretch>0</verstretch>
                                    </sizepolicy>
                                   </property>
-                                  <layout class="QHBoxLayout" name="horizontalLayout_30">
+                                  <layout class="QHBoxLayout" name="horizontalLayout_31">
                                    <property name="spacing">
                                     <number>0</number>
                                    </property>
@@ -4313,7 +4402,7 @@
                                    <verstretch>0</verstretch>
                                   </sizepolicy>
                                  </property>
-                                 <layout class="QHBoxLayout" name="horizontalLayout_26">
+                                 <layout class="QHBoxLayout" name="horizontalLayout_27">
                                   <property name="leftMargin">
                                    <number>0</number>
                                   </property>
@@ -6124,7 +6213,7 @@
              </widget>
             </item>
             <item row="0" column="1">
-             <layout class="QHBoxLayout" name="horizontalLayout_29">
+             <layout class="QHBoxLayout" name="horizontalLayout_30">
               <property name="spacing">
                <number>6</number>
               </property>
@@ -8535,6 +8624,12 @@
   <tabstop>disconnectAccount</tabstop>
   <tabstop>bandwidthTestEnable</tabstop>
   <tabstop>useAuth</tabstop>
+  <tabstop>useProxy</tabstop>
+  <tabstop>socksHost</tabstop>
+  <tabstop>socksPort</tabstop>
+  <tabstop>socksUsername</tabstop>
+  <tabstop>socksPassword</tabstop>
+  <tabstop>socksPasswordShow</tabstop>
   <tabstop>twitchAddonDropdown</tabstop>
   <tabstop>authUsername</tabstop>
   <tabstop>authPw</tabstop>

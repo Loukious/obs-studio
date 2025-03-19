@@ -235,10 +235,12 @@ private slots:
 	void DisplayEnforceWarning(bool checked);
 	void on_show_clicked();
 	void on_authPwShow_clicked();
+	void on_socksPasswordShow_clicked();
 	void on_connectAccount_clicked();
 	void on_disconnectAccount_clicked();
 	void on_useStreamKey_clicked();
 	void on_useAuth_toggled();
+	void on_useProxy_toggled();
 	void on_server_currentIndexChanged(int index);
 
 	void on_hotkeyFilterReset_clicked();

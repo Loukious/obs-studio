@@ -83,6 +83,9 @@ struct rtmp_stream {
 	struct dstr bind_ip;
 	socklen_t addrlen_hint; /* hint IPv4 vs IPv6 */
 
+	struct dstr socks_host, socks_port;
+	struct dstr socks_username, socks_password;
+
 	/* frame drop variables */
 	int64_t drop_threshold_usec;
 	int64_t pframe_drop_threshold_usec;

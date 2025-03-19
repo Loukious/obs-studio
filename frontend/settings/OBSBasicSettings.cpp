@@ -1,17 +1,17 @@
 /******************************************************************************
  Copyright (C) 2023 by Lain Bailey <lain@obsproject.com>
  Philippe Groarke <philippe.groarke@gmail.com>
- 
+
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 2 of the License, or
  (at your option) any later version.
- 
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
@@ -378,6 +378,11 @@ OBSBasicSettings::OBSBasicSettings(QWidget *parent)
 	HookWidget(ui->useAuth,              CHECK_CHANGED,  STREAM1_CHANGED);
 	HookWidget(ui->authUsername,         EDIT_CHANGED,   STREAM1_CHANGED);
 	HookWidget(ui->authPw,               EDIT_CHANGED,   STREAM1_CHANGED);
+	HookWidget(ui->useProxy,             CHECK_CHANGED,  STREAM1_CHANGED);
+	HookWidget(ui->socksHost,          EDIT_CHANGED,   STREAM1_CHANGED);
+	HookWidget(ui->socksPort,            EDIT_CHANGED,   STREAM1_CHANGED);
+	HookWidget(ui->socksUsername,        EDIT_CHANGED,   STREAM1_CHANGED);
+	HookWidget(ui->socksPassword,        EDIT_CHANGED,   STREAM1_CHANGED);
 	HookWidget(ui->ignoreRecommended,    CHECK_CHANGED,  STREAM1_CHANGED);
 	HookWidget(ui->enableMultitrackVideo,      CHECK_CHANGED,  STREAM1_CHANGED);
 	HookWidget(ui->multitrackVideoMaximumAggregateBitrateAuto, CHECK_CHANGED,  STREAM1_CHANGED);

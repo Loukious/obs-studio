@@ -299,6 +299,8 @@ extern "C"
 
         AVal hostname;
         AVal sockshost;
+        AVal socksuser;
+        AVal sockspass;
 
         CUSTOMCONNECTENCODING customConnectEncode;
 

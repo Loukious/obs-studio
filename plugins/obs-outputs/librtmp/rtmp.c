@@ -147,6 +147,7 @@ typedef enum
 static int DumpMetaData(AMFObject *obj);
 static int HandShake(RTMP *r, int FP9HandShake);
 static int SocksNegotiate(RTMP *r);
+static int Socks5Negotiate(RTMP *r);
 
 static int SendConnectPacket(RTMP *r, RTMPPacket *cp);
 static int SendCheckBW(RTMP *r);
@@ -886,12 +887,24 @@ RTMP_Connect0(RTMP *r, SOCKET socket_fd)
     {
         if (r->Link.socksport)
         {
-            RTMP_Log(RTMP_LOGDEBUG, "%s ... SOCKS negotiation", __FUNCTION__);
-            if (!SocksNegotiate(r))
+            if (r->Link.socksuser.av_len > 0 && r->Link.socksuser.av_len > 0)
             {
-                RTMP_Log(RTMP_LOGERROR, "%s, SOCKS negotiation failed.", __FUNCTION__);
-                RTMP_Close(r);
-                return FALSE;
+                if (!Socks5Negotiate(r))
+                {
+                    RTMP_Log(RTMP_LOGERROR, "%s, SOCKS 5 negotiation failed.", __FUNCTION__);
+                    RTMP_Close(r);
+                    return FALSE;
+                }
+            }
+            else
+            {
+                RTMP_Log(RTMP_LOGDEBUG, "%s ... SOCKS negotiation", __FUNCTION__);
+                if (!SocksNegotiate(r))
+                {
+                    RTMP_Log(RTMP_LOGERROR, "%s, SOCKS negotiation failed.", __FUNCTION__);
+                    RTMP_Close(r);
+                    return FALSE;
+                }
             }
         }
     }
@@ -1129,6 +1142,127 @@ fail:
         free(hostname);
 
     return result;
+}
+
+static int
+Socks5Negotiate(RTMP *r)
+{
+    struct sockaddr_storage service;
+    socklen_t addrlen = 0;
+    int socket_error = 0;
+    char packet[256];
+    int len;
+
+    // Use existing SOCKS fields from RTMP struct
+    AVal *sockshost = &r->Link.sockshost;
+    int socksport = r->Link.socksport;
+    AVal *socksuser = &r->Link.socksuser;
+    AVal *sockspass = &r->Link.sockspass;
+
+    // Verify we have credentials
+    if (socksuser->av_len == 0 || sockspass->av_len == 0) {
+        RTMP_Log(RTMP_LOGERROR, "SOCKS5: username/password required");
+        return FALSE;
+    }
+
+    // 1. Send initial handshake
+    char handshake[] = {
+        0x05, // SOCKS version
+        0x01, // 1 authentication method
+        0x02  // Username/password auth
+    };
+    if (!WriteN(r, handshake, sizeof(handshake)))
+        return FALSE;
+
+    // 2. Read auth method response
+    char method[2];
+    if (ReadN(r, method, 2) != 2)
+        return FALSE;
+
+    if (method[0] != 0x05 || method[1] != 0x02) {
+        RTMP_Log(RTMP_LOGERROR, "SOCKS5: Unexpected auth method 0x%02x", method[1]);
+        return FALSE;
+    }
+
+    // 3. Send username/password
+    len = 0;
+    packet[len++] = 0x01; // Auth version
+    packet[len++] = (char)socksuser->av_len;
+    memcpy(packet + len, socksuser->av_val, socksuser->av_len);
+    len += socksuser->av_len;
+    packet[len++] = (char)sockspass->av_len;
+    memcpy(packet + len, sockspass->av_val, sockspass->av_len);
+    len += sockspass->av_len;
+
+    if (!WriteN(r, packet, len))
+        return FALSE;
+
+    // 4. Read auth result
+    char auth_result[2];
+    if (ReadN(r, auth_result, 2) != 2)
+        return FALSE;
+
+    if (auth_result[0] != 0x01 || auth_result[1] != 0x00) {
+        RTMP_Log(RTMP_LOGERROR, "SOCKS5: Authentication failed (0x%02x)", auth_result[1]);
+        return FALSE;
+    }
+
+    // 5. Send connect request (using original host resolution logic)
+    memset(&service, 0, sizeof(service));
+    add_addr_info(&service, &addrlen, &r->Link.hostname, r->Link.port, 0, &socket_error);
+
+    // Build SOCKS5 request
+    len = 0;
+    packet[len++] = 0x05; // VER
+    packet[len++] = 0x01; // CMD = CONNECT
+    packet[len++] = 0x00; // RSV
+
+    if (service.ss_family == AF_INET) {
+        struct sockaddr_in *sin = (struct sockaddr_in *)&service;
+        packet[len++] = 0x01; // IPv4
+        memcpy(packet + len, &sin->sin_addr, 4);
+        len += 4;
+        memcpy(packet + len, &sin->sin_port, 2);
+        len += 2;
+    } else if (service.ss_family == AF_INET6) {
+        struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&service;
+        packet[len++] = 0x04; // IPv6
+        memcpy(packet + len, &sin6->sin6_addr, 16);
+        len += 16;
+        memcpy(packet + len, &sin6->sin6_port, 2);
+        len += 2;
+    } else {
+        RTMP_Log(RTMP_LOGERROR, "SOCKS5: Unknown address family");
+        return FALSE;
+    }
+
+    if (!WriteN(r, packet, len))
+        return FALSE;
+
+    // 6. Read final response
+    char response[10];
+    if (ReadN(r, response, 4) != 4)
+        return FALSE;
+
+    if (response[0] != 0x05 || response[1] != 0x00) {
+        RTMP_Log(RTMP_LOGERROR, "SOCKS5: Connection failed (0x%02x)", response[1]);
+        return FALSE;
+    }
+
+    // Skip remaining response bytes based on address type
+    int extra = 0;
+    switch (response[3]) {
+        case 0x01: extra = 4 + 2; break;  // IPv4
+        case 0x04: extra = 16 + 2; break; // IPv6
+        default:
+            RTMP_Log(RTMP_LOGERROR, "SOCKS5: Invalid address type");
+            return FALSE;
+    }
+
+    if (ReadN(r, response, extra) != extra)
+        return FALSE;
+
+    return TRUE;
 }
 
 static int

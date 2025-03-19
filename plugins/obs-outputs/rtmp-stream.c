@@ -1172,6 +1172,34 @@ static int try_connect(struct rtmp_stream *stream)
 
 	RTMP_Init(&stream->rtmp);
 
+	// Set SOCKS proxy if configured
+	if (!dstr_is_empty(&stream->socks_host) && !dstr_is_empty(&stream->socks_port)) {
+		char socks_url[256];
+		snprintf(socks_url, sizeof(socks_url), "%s:%s", stream->socks_host.array, stream->socks_port.array);
+		stream->rtmp.Link.sockshost.av_val = bstrdup(socks_url); // Duplicate the string to ensure it persists
+		stream->rtmp.Link.sockshost.av_len = (int)strlen(socks_url);
+
+		// Set SOCKS username and password
+		if (!dstr_is_empty(&stream->socks_username)) {
+		    stream->rtmp.Link.socksuser.av_val = bstrdup(stream->socks_username.array);
+		    stream->rtmp.Link.socksuser.av_len = (int)strlen(stream->socks_username.array);
+		} else {
+		    stream->rtmp.Link.socksuser.av_val = NULL;
+		    stream->rtmp.Link.socksuser.av_len = 0;
+		}
+
+		if (!dstr_is_empty(&stream->socks_password)) {
+		    stream->rtmp.Link.sockspass.av_val = bstrdup(stream->socks_password.array);
+		    stream->rtmp.Link.sockspass.av_len = (int)strlen(stream->socks_password.array);
+		} else {
+		    stream->rtmp.Link.sockspass.av_val = NULL;
+		    stream->rtmp.Link.sockspass.av_len = 0;
+		}
+
+		info("Using SOCKS proxy %s with username: %s", socks_url,
+		     stream->rtmp.Link.socksuser.av_val ? stream->rtmp.Link.sockspass.av_val : "(none)");
+	}
+
 	if (!RTMP_SetupURL(&stream->rtmp, stream->path.array))
 		return OBS_OUTPUT_BAD_PATH;
 
@@ -1257,6 +1285,10 @@ static bool init_connect(struct rtmp_stream *stream)
 	dstr_copy(&stream->key, obs_service_get_connect_info(service, OBS_SERVICE_CONNECT_INFO_STREAM_KEY));
 	dstr_copy(&stream->username, obs_service_get_connect_info(service, OBS_SERVICE_CONNECT_INFO_USERNAME));
 	dstr_copy(&stream->password, obs_service_get_connect_info(service, OBS_SERVICE_CONNECT_INFO_PASSWORD));
+	dstr_copy(&stream->socks_host, obs_service_get_connect_info(service, OBS_SERVICE_CONNECT_INFO_SOCKS_HOST));
+	dstr_copy(&stream->socks_port, obs_service_get_connect_info(service, OBS_SERVICE_CONNECT_INFO_SOCKS_PORT));
+	dstr_copy(&stream->socks_username, obs_service_get_connect_info(service, OBS_SERVICE_CONNECT_INFO_SOCKS_USERNAME));
+	dstr_copy(&stream->socks_password, obs_service_get_connect_info(service, OBS_SERVICE_CONNECT_INFO_SOCKS_PASSWORD));
 	dstr_depad(&stream->path);
 	dstr_depad(&stream->key);
 	drop_b = (int64_t)obs_data_get_int(settings, OPT_DROP_THRESHOLD);

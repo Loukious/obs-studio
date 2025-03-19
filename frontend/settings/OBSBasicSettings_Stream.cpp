@@ -127,6 +127,11 @@ void OBSBasicSettings::LoadStream1Settings()
 		ui->authUsername->setText(QT_UTF8(username));
 		ui->authPw->setText(QT_UTF8(password));
 		ui->useAuth->setChecked(use_auth);
+		ui->useProxy->setChecked(obs_data_get_bool(settings, "use_socks_proxy"));
+		ui->socksHost->setText(QT_UTF8(obs_data_get_string(settings, "socks_host")));
+		ui->socksPort->setText(QT_UTF8(obs_data_get_string(settings, "socks_port")));
+		ui->socksUsername->setText(QT_UTF8(obs_data_get_string(settings, "socks_username")));
+		ui->socksPassword->setText(QT_UTF8(obs_data_get_string(settings, "socks_password")));
 	} else {
 		int idx = ui->service->findText(service);
 		if (idx == -1) {
@@ -267,6 +272,14 @@ void OBSBasicSettings::SaveStream1Settings()
 		if (ui->useAuth->isChecked()) {
 			obs_data_set_string(settings, "username", QT_TO_UTF8(ui->authUsername->text()));
 			obs_data_set_string(settings, "password", QT_TO_UTF8(ui->authPw->text()));
+		}
+		obs_data_set_bool(settings, "use_socks_proxy", ui->useProxy->isChecked());
+		if (ui->useProxy->isChecked()) {
+			obs_data_set_bool(settings, "use_socks_proxy", true);
+			obs_data_set_string(settings, "socks_host", QT_TO_UTF8(ui->socksHost->text()));
+			obs_data_set_string(settings, "socks_port", QT_TO_UTF8(ui->socksPort->text()));
+			obs_data_set_string(settings, "socks_username", QT_TO_UTF8(ui->socksUsername->text()));
+			obs_data_set_string(settings, "socks_password", QT_TO_UTF8(ui->socksPassword->text()));
 		}
 	}
 
@@ -413,6 +426,18 @@ void OBSBasicSettings::UpdateKeyLink()
 
 		ui->authPwLabel->setText(lStr.arg(QTStr("Basic.Settings.Stream.Custom.Password"), file));
 		ui->authPwLabel->setToolTip(QTStr("Basic.Settings.Stream.Custom.Password.ToolTip"));
+
+		ui->socksHostLabel->setText(lStr.arg(QTStr("Basic.Settings.Stream.Custom.SocksHost"), file));
+		ui->socksHostLabel->setToolTip(QTStr("Basic.Settings.Stream.Custom.SocksHost.ToolTip"));
+
+		ui->socksPortLabel->setText(lStr.arg(QTStr("Basic.Settings.Stream.Custom.SocksPort"), file));
+		ui->socksPortLabel->setToolTip(QTStr("Basic.Settings.Stream.Custom.SocksPort.ToolTip"));
+
+		ui->socksUsernameLabel->setText(lStr.arg(QTStr("Basic.Settings.Stream.Custom.SocksUsername"), file));
+		ui->socksUsernameLabel->setToolTip(QTStr("Basic.Settings.Stream.Custom.SocksUsername.ToolTip"));
+
+		ui->socksPasswordLabel->setText(lStr.arg(QTStr("Basic.Settings.Stream.Custom.SocksPassword"), file));
+		ui->socksPasswordLabel->setToolTip(QTStr("Basic.Settings.Stream.Custom.SocksPassword.ToolTip"));
 	}
 
 	if (QString(streamKeyLink).isNull() || QString(streamKeyLink).isEmpty()) {
@@ -609,6 +634,16 @@ void OBSBasicSettings::ServiceChanged(bool resetFields)
 	ui->authUsername->setVisible(custom);
 	ui->authPwLabel->setVisible(custom);
 	ui->authPwWidget->setVisible(custom);
+	ui->useProxy->setVisible(custom);
+	ui->socksHost->setVisible(custom);
+	ui->socksPort->setVisible(custom);
+	ui->socksHostLabel->setVisible(custom);
+	ui->socksPortLabel->setVisible(custom);
+	ui->socksUsername->setVisible(custom);
+	ui->socksPassword->setVisible(custom);
+	ui->socksUsernameLabel->setVisible(custom);
+	ui->socksPasswordLabel->setVisible(custom);
+	ui->socksPasswordWidget->setVisible(custom);
 
 	if (custom || whip) {
 		ui->destinationLayout->insertRow(1, ui->serverLabel, ui->serverStackedWidget);
@@ -617,6 +652,7 @@ void OBSBasicSettings::ServiceChanged(bool resetFields)
 		ui->serverStackedWidget->setVisible(true);
 		ui->serverLabel->setVisible(true);
 		on_useAuth_toggled();
+		on_useProxy_toggled();
 	} else {
 		ui->serverStackedWidget->setCurrentIndex(0);
 	}
@@ -726,6 +762,17 @@ void OBSBasicSettings::on_authPwShow_clicked()
 	} else {
 		ui->authPw->setEchoMode(QLineEdit::Password);
 		ui->authPwShow->setText(QTStr("Show"));
+	}
+}
+
+void OBSBasicSettings::on_socksPasswordShow_clicked()
+{
+	if (ui->socksPassword->echoMode() == QLineEdit::Password) {
+		ui->socksPassword->setEchoMode(QLineEdit::Normal);
+		ui->socksPasswordShow->setText(QTStr("Hide"));
+	} else {
+		ui->socksPassword->setEchoMode(QLineEdit::Password);
+		ui->socksPasswordShow->setText(QTStr("Show"));
 	}
 }
 
@@ -901,6 +948,24 @@ void OBSBasicSettings::on_useAuth_toggled()
 	ui->authUsername->setVisible(use_auth);
 	ui->authPwLabel->setVisible(use_auth);
 	ui->authPwWidget->setVisible(use_auth);
+}
+
+void OBSBasicSettings::on_useProxy_toggled()
+{
+	if (!IsCustomService())
+		return;
+
+	bool use_proxy = ui->useProxy->isChecked();
+
+	ui->socksHost->setVisible(use_proxy);
+	ui->socksPort->setVisible(use_proxy);
+	ui->socksHostLabel->setVisible(use_proxy);
+	ui->socksPortLabel->setVisible(use_proxy);
+	ui->socksUsername->setVisible(use_proxy);
+	ui->socksPassword->setVisible(use_proxy);
+	ui->socksUsernameLabel->setVisible(use_proxy);
+	ui->socksPasswordLabel->setVisible(use_proxy);
+	ui->socksPasswordWidget->setVisible(use_proxy);
 }
 
 bool OBSBasicSettings::IsCustomServer()

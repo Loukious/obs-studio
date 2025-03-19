@@ -5,6 +5,8 @@ struct rtmp_custom {
 	char *server, *key;
 	bool use_auth;
 	char *username, *password;
+	bool use_proxy;
+	char *socks_host, *socks_port, *socks_username, *socks_password;
 };
 
 static const char *rtmp_custom_name(void *unused)
@@ -27,6 +29,13 @@ static void rtmp_custom_update(void *data, obs_data_t *settings)
 	service->use_auth = obs_data_get_bool(settings, "use_auth");
 	service->username = bstrdup(obs_data_get_string(settings, "username"));
 	service->password = bstrdup(obs_data_get_string(settings, "password"));
+
+	// Read SOCKS proxy settings
+	service->use_proxy = obs_data_get_bool(settings, "use_socks_proxy");
+	service->socks_host = bstrdup(obs_data_get_string(settings, "socks_host"));
+	service->socks_port = bstrdup(obs_data_get_string(settings, "socks_port"));
+	service->socks_username = bstrdup(obs_data_get_string(settings, "socks_username"));
+	service->socks_password = bstrdup(obs_data_get_string(settings, "socks_password"));
 }
 
 static void rtmp_custom_destroy(void *data)
@@ -37,6 +46,10 @@ static void rtmp_custom_destroy(void *data)
 	bfree(service->key);
 	bfree(service->username);
 	bfree(service->password);
+	bfree(service->socks_host);
+	bfree(service->socks_port);
+	bfree(service->socks_username);
+	bfree(service->socks_password);
 	bfree(service);
 }
 
@@ -59,6 +72,20 @@ static bool use_auth_modified(obs_properties_t *ppts, obs_property_t *p, obs_dat
 	return true;
 }
 
+static bool use_proxy_modified(obs_properties_t *ppts, obs_property_t *p, obs_data_t *settings)
+{
+	bool use_proxy = obs_data_get_bool(settings, "use_socks_proxy");
+	p = obs_properties_get(ppts, "socks_host");
+	obs_property_set_visible(p, use_proxy);
+	p = obs_properties_get(ppts, "socks_port");
+	obs_property_set_visible(p, use_proxy);
+	p = obs_properties_get(ppts, "socks_username");
+	obs_property_set_visible(p, use_proxy);
+	p = obs_properties_get(ppts, "socks_password");
+	obs_property_set_visible(p, use_proxy);
+	return true;
+}
+
 static obs_properties_t *rtmp_custom_properties(void *unused)
 {
 	UNUSED_PARAMETER(unused);
@@ -74,6 +101,12 @@ static obs_properties_t *rtmp_custom_properties(void *unused)
 	obs_properties_add_text(ppts, "username", obs_module_text("Username"), OBS_TEXT_DEFAULT);
 	obs_properties_add_text(ppts, "password", obs_module_text("Password"), OBS_TEXT_PASSWORD);
 	obs_property_set_modified_callback(p, use_auth_modified);
+	p = obs_properties_add_bool(ppts, "use_socks_proxy", obs_module_text("UseProxy"));
+	obs_properties_add_text(ppts, "socks_host", obs_module_text("SOCKSProxyHost"), OBS_TEXT_DEFAULT);
+	obs_properties_add_text(ppts, "socks_port", obs_module_text("SOCKSProxyPort"), OBS_TEXT_DEFAULT);
+	obs_properties_add_text(ppts, "socks_username", obs_module_text("SOCKSProxyUsername"), OBS_TEXT_DEFAULT);
+	obs_properties_add_text(ppts, "socks_password", obs_module_text("SOCKSProxyPassword"), OBS_TEXT_PASSWORD);
+	obs_property_set_modified_callback(p, use_proxy_modified);
 	return ppts;
 }
 
@@ -103,6 +136,38 @@ static const char *rtmp_custom_password(void *data)
 	if (!service->use_auth)
 		return NULL;
 	return service->password;
+}
+
+static const char *rtmp_custom_socks_host(void *data)
+{
+	struct rtmp_custom *service = data;
+	if (!service->use_proxy)
+		return NULL;
+	return service->socks_host;
+}
+
+static const char *rtmp_custom_socks_port(void *data)
+{
+	struct rtmp_custom *service = data;
+	if (!service->use_proxy)
+		return NULL;
+	return service->socks_port;
+}
+
+static const char *rtmp_custom_socks_username(void *data)
+{
+	struct rtmp_custom *service = data;
+	if (!service->use_proxy)
+		return NULL;
+	return service->socks_username;
+}
+
+static const char *rtmp_custom_socks_password(void *data)
+{
+	struct rtmp_custom *service = data;
+	if (!service->use_proxy)
+		return NULL;
+	return service->socks_password;
 }
 
 #define RTMPS_PREFIX "rtmps://"
@@ -162,6 +227,14 @@ static const char *rtmp_custom_get_connect_info(void *data, uint32_t type)
 
 		break;
 	}
+	case OBS_SERVICE_CONNECT_INFO_SOCKS_HOST:
+        	return rtmp_custom_socks_host(data);
+    	case OBS_SERVICE_CONNECT_INFO_SOCKS_PORT:
+        	return rtmp_custom_socks_port(data);
+	case OBS_SERVICE_CONNECT_INFO_SOCKS_USERNAME:
+		return rtmp_custom_socks_username(data);
+	case OBS_SERVICE_CONNECT_INFO_SOCKS_PASSWORD:
+		return rtmp_custom_socks_password(data);
 	case OBS_SERVICE_CONNECT_INFO_BEARER_TOKEN:
 		return NULL;
 	}
@@ -189,6 +262,10 @@ struct obs_service_info rtmp_custom_service = {
 	.get_connect_info = rtmp_custom_get_connect_info,
 	.get_username = rtmp_custom_username,
 	.get_password = rtmp_custom_password,
+	.get_socks_host = rtmp_custom_socks_host,
+	.get_socks_port = rtmp_custom_socks_port,
+	.get_socks_username = rtmp_custom_socks_username,
+	.get_socks_password = rtmp_custom_socks_password,
 	.apply_encoder_settings = rtmp_custom_apply_settings,
 	.can_try_to_connect = rtmp_custom_can_try_to_connect,
 };
